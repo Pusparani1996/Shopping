@@ -1,12 +1,22 @@
 import 'package:flutter/cupertino.dart';
+import 'package:foodappgridviewbuilder/database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'card_model.dart';
 
 class CartProvider with ChangeNotifier{
 
+  DBHelper db = DBHelper();
   int _counter = 0;
   int get counter =>_counter;
   double _totalPrice = 0.0;
    double get totalPrice => _totalPrice;
+   late Future<List<Cart>> _cart;
+   Future<List<Cart>> get cart => _cart;
+   Future<List<Cart>> getData () async{
+    _cart = db.getCartList();
+    return _cart ;
+   }
 
    void _setPrefItems()async
    {

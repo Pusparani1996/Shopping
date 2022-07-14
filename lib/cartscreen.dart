@@ -1,46 +1,29 @@
-//import 'dart:html';
-
 import 'package:badges/badges.dart';
 import 'package:flutter/material.dart';
-import 'package:foodappgridviewbuilder/card_model.dart';
 import 'package:foodappgridviewbuilder/cart_provider.dart';
-import 'package:foodappgridviewbuilder/cartscreen.dart';
-import 'package:foodappgridviewbuilder/database.dart';
 import 'package:provider/provider.dart';
 
-class ProductList extends StatefulWidget {
-  const ProductList({Key? key}) : super(key: key);
+import 'card_model.dart';
 
+class CartScreen extends StatefulWidget{
+  const CartScreen({Key? key}) : super(key: key);
+  
   @override
-  // ignore: library_private_types_in_public_api
-  _ProductListState createState() => _ProductListState();
+  _CartScreenState createState()=> _CartScreenState();
+  
 }
 
-class _ProductListState extends State<ProductList> {
-  DBHelper? dbHelper = DBHelper();
-  List<String> productName = ["Apple", "Green Apple", "Grapes", "Orange"];
-  List<String> productUnit = ["Kg", "Dozen", "Kg", "kg"];
-  List<int> productPrice = [10, 20, 30, 40];
-  List<String> productImage = [
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6syPu5Njlz_DwJ8q8La6bxfuQzhkhpeJT9w&usqp=CAU",
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5s0nVoF9sDuYWIJwuSrV3vDyoT26pS64Psg&usqp=CAU",
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSf291uUYgvBIHo-K7QWdeXn-jbiFZqOME5ZQ&usqp=CAU",
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRS3-jC9Iu_zBxPNeFBY6koriThqplo-rTQoQ&usqp=CAU",
-  
-  ];
+
+
+class _CartScreenState extends State<CartScreen>{
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context);
     return Scaffold(
-        appBar: AppBar(
-          title: const Text("Product List"),
+       appBar: AppBar(
+          title: const Text("My Cart"),
           actions: [
-            InkWell(
-              onTap:(){
-                Navigator.push(context, 
-                MaterialPageRoute(
-                  builder: (context)=> CartScreen()));
-              } ,
+            Center(
               child: Row(
                 children: [
                   const Padding(
@@ -73,12 +56,12 @@ class _ProductListState extends State<ProductList> {
         ),
         body: Column(
           children: [
-            Expanded(
-              child: 
-            
-            Padding(
-              padding: const EdgeInsets.all(0.0),
-              child: GridView.builder(
+            FutureBuilder(
+              future: cart.getData(),
+              builder: (context,AsyncSnapshot<List<Cart>>snapshot){
+                if(snapshot.hasData){
+                  return Expanded(
+                    child: GridView.builder(
                 shrinkWrap: true,
               gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(
                                         crossAxisCount: 2,
@@ -86,7 +69,7 @@ class _ProductListState extends State<ProductList> {
                                         mainAxisSpacing: 15,
                                         crossAxisSpacing: 15,
                                       ), 
-              itemCount: productName.length,
+              itemCount: snapshot.data!.length,
 
               itemBuilder: (BuildContext context, index) {
                 return Container(
@@ -105,9 +88,10 @@ class _ProductListState extends State<ProductList> {
                           Image(
                             height: 150,
                             width: 200,
-                            image: NetworkImage(productImage[index].toString())),
+                            image: NetworkImage(snapshot.data![index].image.toString())
+                            ),
                               Text(
-                                        productName[index].toString(),
+                                        snapshot.data![index].productName.toString(),
                                         style: const TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold),
@@ -116,10 +100,10 @@ class _ProductListState extends State<ProductList> {
                                               padding: const EdgeInsets.all(3.0),
                                               child: Text(
                                         // ignore: prefer_interpolation_to_compose_strings
-                                        productUnit[index].toString() +
+                                       snapshot.data![index].unitTag.toString()+
                                               "" + 
                                               r" $ " +
-                                              productPrice[index].toString(),
+                                              snapshot.data![index].productPrice.toString(),
                                         style: const TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold),
@@ -129,34 +113,8 @@ class _ProductListState extends State<ProductList> {
                                         alignment: Alignment.center,
                                         child: InkWell(
                                           onTap: (){
-                                            print(index);
-                                            print(index);
-                                              print(productName[index].toString());
-                                            print(productPrice[index].toString());
-                                              print(productPrice[index]);
-                                            print(1);
-                                              print(productUnit[index].toString());
-                                            print(productImage[index].toString());
-
-                                            dbHelper!.insert(Cart(
-                                              id: index, 
-                                              productId: index.toString(), 
-                                              productName: productName[index].toString(),
-                                               initialPrice: productPrice[index], 
-                                               productPrice: productPrice[index],
-                                                quality: 1, 
-                                                unitTag: productUnit[index].toString(), 
-                                                image: productImage[index].toString())
-                                                ).then((value) {
-                                                    print("Product is added");
-                                                  cart.addTotalPrice(double.parse(productPrice[index].toString()));
-                                                  cart.addCounter();
-                                                
-
-                                                }).onError((error, stackTrace) {
-                                                  print(error.toString());
-                                                }
-                                                );
+                                        
+                            
                                           },
                                           child: Container(
                                             width: 100,
@@ -185,13 +143,14 @@ class _ProductListState extends State<ProductList> {
                 );
                 
               }),
-            ),
-           )
+                    );
+                }
+                return Text("");
+
+              }
+            )
           ],
-         
-          
-        )
-        );
+        ),
+    );
   }
 }
-
